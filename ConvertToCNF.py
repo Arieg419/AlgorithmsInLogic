@@ -1,4 +1,4 @@
-import argparse
+import sys
 # Expression index will hold index of matching parenthesis
 class ExpressionIndexes:
     def __init__(self, startIdx, endIdx):
@@ -21,6 +21,7 @@ cnfRepresentationDict = {}
 cnfRepCounter = 1
 equationCounter = 0
 lastTmp = ""
+assignmentDictionary = {}
 
 # Hamiltonian Cycle
 formula = "((A^!B)^(!C^D)^(E|F)^(G|H)^(E|G)^(F|H)^(E|G)^(F|H)^(E>!F)^(F>!E)^(G>!H)^(H>!G)^(E>!G)^(G>!E)^(F>!G)^(H>!F)^(D>!K)^(D>!L)^(!O>!G)^(!G|!F))"
@@ -119,15 +120,15 @@ def createExpressionArray(expressionIndexArr):
     del expressionArr[:] 
     for idx,index in enumerate(expressionIndexArr):
         string = formula[index.start: index.end + 1]
-        #print "STRINGS ISSSSSSSS, ", string
         expressionArr.append(string)
 
 # Print Raw Expression
 def printRawExpression():
+    print "***********************"
     print "Raw Expression Arr is (before parsing NOT operators): "
     for i, el in enumerate(expressionArr):
         print i, el
-    print "\n"
+    print "***********************\n"
 
 # Print Parenthesis Index Array
 def printIndexParentheses():
@@ -148,7 +149,6 @@ def indexParenthesis(formula):
     del startParenthesisArr[:]
     del endParenthesisArr[:]
     for i, c in enumerate(formula):
-        # print i, c
         if(c == "("):
             startParenthesisArr.append(i)
         if(c == ")"):
@@ -184,32 +184,28 @@ def cleanFormulaFromNot(parsedExpressionArr):
 
 # Printing Utility function
 def printTseitenDictionary():
+    print "***********************"
     print "Tseiten Dictionary is \n" 
     for dic in tseitenDictionary:
         print dic, "<-->" ,tseitenDictionary[dic]
-    print "\n"
+    print "***********************\n"
 
 # Creating Tseiten Dictionary
 def createTseitenDictionary():
     global formula
     global lastTmp
-    print "\n"
-    print "*********************** TSEITEN INVESTIGATION *****************\n"
-    print " IN TSEITEN DICT CREATION FUNCTION"
-    printExpressionArray()
-    for i,item in enumerate(expressionArr): # (startParenIndex,endParenIndex)
+
+    for i,item in enumerate(expressionArr): 
         lastTmp = temp = generateNewParamString()
         tseitenDictionary[str(temp)] = expressionArr[i]
         formula = formula.replace(expressionArr[i], temp)
-    print "Last temp is ", lastTmp
 
     for i, item in tseitenDictionary.iteritems():
         if(tseitenDictionary[lastTmp].find(item) != -1 and i != lastTmp):
             tseitenDictionary[lastTmp] = tseitenDictionary[lastTmp].replace(item, i)
 
     formula = lastTmp
-    print formula
-    print "*********************** END OF TSEITEN INVESTIGATION *****************\n"
+    
 
 
 
@@ -217,13 +213,10 @@ def createTseitenDictionary():
 # Printing Utility function
 def printTseitenFinal(booleanThang):
     global lastTmp
-    print "***********************"
-    print "Tseiten Final Dictionary is " 
     for dic in finalTseiten:
         print finalTseiten[dic], " 0"
     if(booleanThang):
         print cnfRepresentationDict[lastTmp], " 0"
-    print "***********************\n"
     # how do i add lastTmp is true?
 
 
@@ -306,20 +299,16 @@ def convertToCNF(firstArg, secondArg):
 
 def printCNFRepresentationDic():
     global cnfRepresentationDict
-    print "***********************"
-    print "Print CNF Representation Dictionary "
     for key in cnfRepresentationDict:
         print key, cnfRepresentationDict[key]
-    print "***********************"
     return 
     
 
-#printFormula()
 
 # Checking if original vars are detected correctly
-countVariables2(formula)
+#countVariables2(formula)
 # TODO , take all original vals and find their value in the CNFREPRESENTATIONdictionary, and find the hasama in zchaff pelet 
-printOriginalVarDictionary2()
+#printOriginalVarDictionary2()
 
 # check input validity
 indexParenthesis(formula)
@@ -334,7 +323,7 @@ createIndexArray(startArrLen)
 
 # Create Raw Expression Array
 createExpressionArray(expressionIndexArr)
-printExpressionArray()
+#printExpressionArray()
 
 # Create Array that holds all Literals with "!", BAD NAMED VARIABLE, Excuse me ;)
 createParsedExpressionArr(expressionArr)
@@ -342,29 +331,24 @@ createParsedExpressionArr(expressionArr)
 
 # Clean Original Formula from NOT operator on literals
 cleanFormulaFromNot(parsedExpressionArr)
-printFormula()
+#printFormula()
 
 #TODO, check that all data is update after Cleaning Formula from NOT
-print "*************************** SECONDDDDDDDDDDDDDD ********"
 indexParenthesis(formula)
 checkBalancedParen(startParenthesisArr, endParenthesisArr)
 createIndexArray(startArrLen)
 createExpressionArray(expressionIndexArr)
-printExpressionArray()
+#printExpressionArray()
 
 
 # Creating Tseiten Dictionary, all variables that Tseiten Algo introduces. ie. NOT A, B,C ..., F
 createTseitenDictionary()
-printTseitenDictionary()
+#printTseitenDictionary()
 
 # Final Transformation, with Tseiten, creates FinalVarDictionary with ALL variables
-print "*************************** SHIRT SHTINITS IS THE SHIT *******************"
 for key in tseitenDictionary:
     convertToCNF(key, tseitenDictionary[key])
-printTseitenFinal(False)
-print "*************************** SHIRT SHTINITS IS THE SHIT *******************"
-# Only using FinalVarDictionary to fill CNFRepresentationDictionary, works well
-#printFinalVarDictionary()
+
 
 # Creating CNFRepresentation Dic for Last Stage (see below comments)
 for key in finalVarDictionary:
@@ -372,7 +356,15 @@ for key in finalVarDictionary:
         continue
     cnfRepresentationDict[str(key)] = cnfRepCounter
     cnfRepCounter = cnfRepCounter + 1
+orig_stdout = sys.stdout
+f = file('cnfRepresentationDict.txt', 'w')
+sys.stdout = f
 printCNFRepresentationDic()
+sys.stdout = orig_stdout
+f.close()
+
+
+
 
 # Parsing Expression from Parenthesis, ^,v,! operators. Preparing for cnf line format.
 for dic in finalTseiten:
@@ -390,7 +382,15 @@ for key, val in finalTseiten.iteritems():
     for pattern, value in cnfRepresentationDict.iteritems():
         finalTseiten[key] = finalTseiten[key].replace( str(pattern) , str(value))
 
+orig_stdout = sys.stdout
+f = file('cnfFormula.cnf', 'w')
+sys.stdout = f
 print "p cnf", len(cnfRepresentationDict), equationCounter + 1
 printTseitenFinal(True)
-printFormula()
+sys.stdout = orig_stdout
+f.close()
 
+
+for key, val in cnfRepresentationDict.iteritems():
+    if key in originalVarDictionary2:
+        print key, val
