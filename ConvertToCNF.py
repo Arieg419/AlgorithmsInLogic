@@ -1,55 +1,11 @@
 import sys
-# Expression index will hold index of matching parenthesis
-class ExpressionIndexes:
-    def __init__(self, startIdx, endIdx):
-        self.start = startIdx
-        self.end = endIdx
-
-# Global Variables
-originalVarDictionary2 = []
-finalVarDictionary = []         
-startParenthesisArr = []
-endParenthesisArr = []
-expressionIndexArr = []
-expressionArr = []
-parsedExpressionArr = []
-variableCounter = 0
-variableSequence = []
-tseitenDictionary = {}
-finalTseiten = {}
-cnfRepresentationDict = {}
-cnfRepCounter = 1
-equationCounter = 0
-lastTmp = ""
-assignmentDictionary = {}
+from utilities import *
 
 # Hamiltonian Cycle
-formula = "((A^!B)^(!C^D)^(E|F)^(G|H)^(E|G)^(F|H)^(E|G)^(F|H)^(E>!F)^(F>!E)^(G>!H)^(H>!G)^(E>!G)^(G>!E)^(F>!G)^(H>!F)^(D>!K)^(D>!L)^(!O>!G)^(!G|!F))"
+formula = "((A^!B)^(!C^D)^(E|F)^(G|H)^(E|G)^(F|H)^(E|G)^(F|H)^(!E|!F)^(F>!E)^(G>!H)^(H>!G)^(E>!G)^(G>!E)^(F>!G)^(!H|!F)^(!F^!F)^(D>!K)^(D>!L)^(!O>!G)^(!G|!F))"
 
 # Two Vertexes with one edge
-#formula="((E^C)^(!E|!C)^(A^!B))"
-
-#TRUE x11 = A, x22 = E, x33 = H, x14 = D
-# x11 is A, x12 is B, x13 is C, x14 is D
-#PROBLEM ^(A>!I^!J)
-#line1 = "(A^!B^!C^D^(E|F)^(G|H)^(E|G)^(F|H))"
-#formula = line1
-# x22 is E, x23 is F, x32 is G, x33 is H
-#line2 = "(E|F)^(G|H)"
-#line3 = "(E|G)^(F|H)"
-#line4 = "(E>!F)^(F>!E)^(G>!H)^(H>!G)"
-# x21 is I, x31 is J, x24 is K, x34 is L
-#line5 = (A>((!I^!J)))^(E>!G)^(G>!E)
-#line6 = "(F>!G)^(H>!F)^(D>(!K^!L))"
-# y32 is M, x32 is G, x23 is F, y21 is N, x23 is is F, y13 is O
-#line7 = "((!M>((!G)|(!F)))^(!N>!F)^(!O>!G))"
-# x11 is A, X13 is B, x21 is C, x23 is D, x22 is E, x12 is F
-
-
-
-
-
- 
+#formula="((E^C)^(!E|!C)^(A^!B))" 
 
 def countVariables2(formula):
     global originalVarDictionary2
@@ -57,18 +13,13 @@ def countVariables2(formula):
         if item.isalpha() & item.isupper() & (str(item) not in originalVarDictionary2):
             originalVarDictionary2.append(item)
 
-def printOriginalVarDictionary2():
-    global originalVarDictionary2
-    print "***********************"
-    print "Original Var Dictionary\n"
-    for val in originalVarDictionary2:
-        print val
-    print "***********************\n"
-
-def printFormula():
-    print "***********************"
-    print "Formula is " , formula, "\n"
-    print "***********************\n"
+# Printing Utility function
+def printTseitenFinal(booleanThang):
+    global lastTmp
+    for dic in finalTseiten:
+        print finalTseiten[dic], " 0"
+    if(booleanThang):
+        print cnfRepresentationDict[lastTmp], " 0"
 
 def generateNewParamString():    
     global variableCounter
@@ -86,13 +37,6 @@ def checkBalancedParen(startParenthesisArr, endParenthesisArr):
         print("Invalid input!!!!")
         exit()
 
-# Print Index Array
-def printIndexArray():
-    print "***********************"
-    print "Index Array is "
-    for item in expressionIndexArr:
-        print item.start, item.end
-    print "***********************\n"
 
 # create Array holding start index and index for each expression
 def createIndexArray(startArrLen):
@@ -106,42 +50,12 @@ def createIndexArray(startArrLen):
                 flagArr[idxE] = True
                 break
 
-# Print Clauses Array
-def printExpressionArray():
-    global expressionArr
-    print "***********************"
-    print "Printing Expression Array "
-    for i,item in enumerate(expressionArr):
-        print i, item
-    print "***********************\n"
-
 # create expression array 
 def createExpressionArray(expressionIndexArr):
     del expressionArr[:] 
     for idx,index in enumerate(expressionIndexArr):
         string = formula[index.start: index.end + 1]
         expressionArr.append(string)
-
-# Print Raw Expression
-def printRawExpression():
-    print "***********************"
-    print "Raw Expression Arr is (before parsing NOT operators): "
-    for i, el in enumerate(expressionArr):
-        print i, el
-    print "***********************\n"
-
-# Print Parenthesis Index Array
-def printIndexParentheses():
-    global startParenthesisArr
-    global endParenthesisArr
-    print "***********************"
-    print "Start Parenthesis Array"
-    print startParenthesisArr
-    print "***********************\n"
-    print "***********************"
-    print "end Parenthesis Array"
-    print endParenthesisArr
-    print "***********************\n"
 
    
 # Indexing all parenthesis
@@ -153,15 +67,6 @@ def indexParenthesis(formula):
             startParenthesisArr.append(i)
         if(c == ")"):
             endParenthesisArr.append(i)
-
-# Print Parsed Expression Array
-def printParsedExpressionArray():
-    global parsedExpressionArr
-    print "***********************"
-    print "Printing Clauses with NOT operator Array "
-    for item in parsedExpressionArr:
-        print item
-    print "***********************\n"
 
 # create Parsed Expression Array (holds literals with NOT)
 def createParsedExpressionArr(expressionArr):
@@ -182,14 +87,6 @@ def cleanFormulaFromNot(parsedExpressionArr):
     createIndexArray(newLen)
     createExpressionArray(expressionIndexArr)
 
-# Printing Utility function
-def printTseitenDictionary():
-    print "***********************"
-    print "Tseiten Dictionary is \n" 
-    for dic in tseitenDictionary:
-        print dic, "<-->" ,tseitenDictionary[dic]
-    print "***********************\n"
-
 # Creating Tseiten Dictionary
 def createTseitenDictionary():
     global formula
@@ -205,19 +102,6 @@ def createTseitenDictionary():
             tseitenDictionary[lastTmp] = tseitenDictionary[lastTmp].replace(item, i)
 
     formula = lastTmp
-    
-
-
-
-
-# Printing Utility function
-def printTseitenFinal(booleanThang):
-    global lastTmp
-    for dic in finalTseiten:
-        print finalTseiten[dic], " 0"
-    if(booleanThang):
-        print cnfRepresentationDict[lastTmp], " 0"
-    # how do i add lastTmp is true?
 
 
 def findParenthesisAndOperatorIndex(secondArg, pattern):
@@ -230,15 +114,6 @@ def findParenthesisAndOperatorIndex(secondArg, pattern):
         elif(item == ")"):
             arrOfIdx.append(i)
     return arrOfIdx
-
-# FinalVarDictionary holds all the keys of TseitenDictionary
-def printFinalVarDictionary():
-    global finalVarDictionary
-    print "***********************"
-    print "Final Var Dictionary is "
-    for item in finalVarDictionary:
-        print item
-    print "***********************\n"
 
 def convertToCNF(firstArg, secondArg):
     global finalTseiten
@@ -297,13 +172,34 @@ def convertToCNF(firstArg, secondArg):
             finalVarDictionary.append(thirdParameter)
         return
 
-def printCNFRepresentationDic():
-    global cnfRepresentationDict
-    for key in cnfRepresentationDict:
-        print key, cnfRepresentationDict[key]
-    return 
-    
+# Creating CNFRepresentation Dic for Last Stage (see below comments)
+def finalCNFRep():
+    global cnfRepCounter
+    for key in finalVarDictionary:
+        if key == "":
+            continue
+        cnfRepresentationDict[str(key)] = cnfRepCounter
+        cnfRepCounter = cnfRepCounter + 1
+    orig_stdout = sys.stdout
+    f = file('cnfRepresentationDict.txt', 'w')
+    sys.stdout = f
+    printCNFRepresentationDic()
+    sys.stdout = orig_stdout
+    f.close()
 
+# Parsing Expression from Parenthesis, ^,v,! operators. Preparing for cnf line format.
+def finalParse():
+    for dic in finalTseiten:
+        global equationCounter
+        finalTseiten[dic] = finalTseiten[dic].replace("!", "-")
+        if finalTseiten[dic].find(" ^ ") != -1:
+            equationCounter = equationCounter + finalTseiten[dic].count(" ^ ")
+            finalTseiten[dic] = finalTseiten[dic].replace(" ^ ", " 0 \n")
+        finalTseiten[dic] = finalTseiten[dic].replace("(", "")
+        finalTseiten[dic] = finalTseiten[dic].replace(")", "")
+        finalTseiten[dic] = finalTseiten[dic].replace("v", "")
+        equationCounter = equationCounter + 1
+    
 
 # Checking if original vars are detected correctly
 #countVariables2(formula)
@@ -349,33 +245,11 @@ createTseitenDictionary()
 for key in tseitenDictionary:
     convertToCNF(key, tseitenDictionary[key])
 
-
-# Creating CNFRepresentation Dic for Last Stage (see below comments)
-for key in finalVarDictionary:
-    if key == "":
-        continue
-    cnfRepresentationDict[str(key)] = cnfRepCounter
-    cnfRepCounter = cnfRepCounter + 1
-orig_stdout = sys.stdout
-f = file('cnfRepresentationDict.txt', 'w')
-sys.stdout = f
-printCNFRepresentationDic()
-sys.stdout = orig_stdout
-f.close()
-
-
-
+# Create Final CNF Representation, not yet CNF format
+finalCNFRep()
 
 # Parsing Expression from Parenthesis, ^,v,! operators. Preparing for cnf line format.
-for dic in finalTseiten:
-    finalTseiten[dic] = finalTseiten[dic].replace("!", "-")
-    if finalTseiten[dic].find(" ^ ") != -1:
-        equationCounter = equationCounter + finalTseiten[dic].count(" ^ ")
-        finalTseiten[dic] = finalTseiten[dic].replace(" ^ ", " 0 \n")
-    finalTseiten[dic] = finalTseiten[dic].replace("(", "")
-    finalTseiten[dic] = finalTseiten[dic].replace(")", "")
-    finalTseiten[dic] = finalTseiten[dic].replace("v", "")
-    equationCounter = equationCounter + 1
+finalParse()
 
 # Replaces variables from form of A, B, a11 etc. to -23 32 12 etc, Last Stage
 for key, val in finalTseiten.iteritems():
@@ -391,6 +265,3 @@ sys.stdout = orig_stdout
 f.close()
 
 
-for key, val in cnfRepresentationDict.iteritems():
-    if key in originalVarDictionary2:
-        print key, val
