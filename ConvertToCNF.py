@@ -3,7 +3,7 @@ from utilities import *
 
 # Hamiltonian Cycle
 formula = "((A^!B)^(!C^D)^(E|F)^(G|H)^(E|G)^(F|H)^(E|G)^(F|H)^(!E|!F)^(F>!E)^(G>!H)^(H>!G)^(E>!G)^(G>!E)^(F>!G)^(!H|!F)^(!F^!F)^(D>!K)^(D>!L)^(!O>!G)^(!G|!F))"
-
+formula = "((A^!B)^(!C^D)^(E|F)^(G|H)^(E|G)^(F|H)^(E|G)^(F|H)^(!E|!F)^(!H|!G)^(!G|!E)^(!F|!G)^(!H|!F)^(!D|!K)^(!D|!L)^(O|!G)^(!G|!F))"
 # Two Vertexes with one edge
 #formula="((E^C)^(!E|!C)^(A^!B))" 
 
